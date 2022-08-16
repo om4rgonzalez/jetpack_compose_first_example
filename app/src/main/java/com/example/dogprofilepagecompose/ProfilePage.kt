@@ -16,11 +16,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.layoutId
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
+import androidx.constraintlayout.compose.ConstraintSet
 import androidx.constraintlayout.compose.Dimension
 
 
@@ -33,18 +36,19 @@ fun ProfilePage() {
             .padding(top = 100.dp, bottom = 100.dp, start = 16.dp, end = 16.dp)
             .border(width = 2.dp, color = Color.White, shape = RoundedCornerShape(30.dp))
     ) {
-        //Content of our card, including picture, name, description and buttons
-        ConstraintLayout {
-            val (
-                image,
-                nameText,
-                jobText,
-                rowStats,
-                buttonFollow,
-                buttonMessage
-            ) = createRefs()
+        BoxWithConstraints() {
+            val constraints = if (minWidth < 600.dp){
+                portraidConstraints(16.dp)
+            }
+            else{
+                landscapeConstraint(16.dp)
+            }
 
-            val guideLine = createGuidelineFromTop(0.1f)
+        //Content of our card, including picture, name, description and buttons
+        ConstraintLayout(constraints) {
+
+
+
             Image(painter = painterResource(id = R.drawable.ismael),
                 contentDescription = "Ismael",
                 modifier = Modifier
@@ -53,28 +57,18 @@ fun ProfilePage() {
                     .border(
                         width = 2.dp,
                         color = Color.Red,
-                        shape = CircleShape).constrainAs(image){
-                            top.linkTo(guideLine)
-                            start.linkTo(parent.start)
-                            end.linkTo(parent.end) },
+                        shape = CircleShape
+                    ).layoutId("image"),
                 contentScale = ContentScale.Crop
             )
 
             Text(
                 text = "Ismael Gonzalez Brouchy",
-                modifier = Modifier.constrainAs(nameText){
-                    top.linkTo(image.bottom)
-                    start.linkTo(parent.start)
-                    end.linkTo(parent.end)
-                }
+                modifier = Modifier.layoutId("nameText")
             )
             Text(
                 text = "Youtuber",
-                modifier = Modifier.constrainAs(jobText){
-                    top.linkTo(nameText.bottom)
-                    start.linkTo(parent.start)
-                    end.linkTo(parent.end)
-                }
+                modifier = Modifier.layoutId("jobName")
             )
 
             Row(
@@ -82,9 +76,7 @@ fun ProfilePage() {
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(16.dp)
-                    .constrainAs(rowStats){
-                        top.linkTo(jobText.bottom)
-                    }
+                    .layoutId("rowStat")
             ) {
                 ProfileStats(count = "150", title = "Followers")
                 ProfileStats(count = "100", title = "Following")
@@ -92,28 +84,19 @@ fun ProfilePage() {
             }
 
             Button(
-                modifier = Modifier.constrainAs(buttonFollow){
-                    top.linkTo(rowStats.bottom, margin = 16.dp)
-                    start.linkTo(parent.start)
-                    end.linkTo(buttonMessage.start)
-                    width= Dimension.wrapContent
-                },
-                onClick = { /*TODO*/ }
+                onClick = { /*TODO*/ },
+                modifier = Modifier.layoutId("followButton")
             ) {
                 Text(text = "Follow user")
             }
 
             Button(
-                modifier = Modifier.constrainAs(buttonMessage){
-                    top.linkTo(rowStats.bottom, margin = 16.dp)
-                    start.linkTo(buttonFollow.end)
-                    end.linkTo(parent.end)
-                    width= Dimension.wrapContent
-                },
-                onClick = { /*TODO*/ }
+                onClick = { /*TODO*/ },
+                modifier = Modifier.layoutId("messageButton")
             ) {
                 Text(text = "Direct Message")
             }
+        }
         }
     }
 }
@@ -123,6 +106,103 @@ fun ProfileStats(count: String, title: String){
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Text(text = count, fontWeight = FontWeight.Bold)
         Text(text = title)
+    }
+}
+
+private fun portraidConstraints(margin: Dp): ConstraintSet{
+    return ConstraintSet{
+        val image = createRefFor("image")
+        val nameText = createRefFor("nameText")
+        val jobName = createRefFor("jobName")
+        val rowStat = createRefFor("rowStat")
+        val followButton = createRefFor("followButton")
+        val messageButton = createRefFor("messageButton")
+        val guideline = createGuidelineFromTop(0.3f)
+
+        constrain(image){
+            top.linkTo(parent.top)
+            start.linkTo(parent.start)
+            end.linkTo(parent.end)
+        }
+
+        constrain(nameText){
+            top.linkTo(image.bottom)
+            start.linkTo(parent.start)
+            end.linkTo(parent.end)
+        }
+
+        constrain(jobName){
+            top.linkTo(nameText.bottom)
+            start.linkTo(parent.start)
+            end.linkTo(parent.end)
+        }
+
+        constrain(rowStat){
+            top.linkTo(jobName.bottom)
+        }
+
+        constrain(followButton){
+            top.linkTo(rowStat.bottom, margin = 16.dp)
+            start.linkTo(parent.start)
+            end.linkTo(messageButton.start)
+            width= Dimension.wrapContent
+        }
+
+        constrain(messageButton){
+            top.linkTo(rowStat.bottom, margin = 16.dp)
+            start.linkTo(followButton.end)
+            end.linkTo(parent.end)
+            width= Dimension.wrapContent
+        }
+    }
+}
+
+private fun landscapeConstraint(margin: Dp): ConstraintSet{
+    return ConstraintSet{
+        val image = createRefFor("image")
+        val nameText = createRefFor("nameText")
+        val jobName = createRefFor("jobName")
+        val rowStat = createRefFor("rowStat")
+        val followButton = createRefFor("followButton")
+        val messageButton = createRefFor("messageButton")
+        val guideline = createGuidelineFromTop(0.3f)
+
+        constrain(image){
+            top.linkTo(parent.top, margin = margin)
+            start.linkTo(nameText.start)
+            end.linkTo(nameText.end)
+        }
+
+        constrain(nameText){
+            top.linkTo(image.bottom)
+            start.linkTo(parent.start, margin = margin)
+        }
+
+        constrain(jobName){
+            top.linkTo(nameText.bottom)
+            start.linkTo(nameText.start)
+            end.linkTo(nameText.end)
+        }
+
+        constrain(rowStat){
+            top.linkTo(image.top)
+            start.linkTo(nameText.end, margin = margin)
+            end.linkTo(parent.end, margin = margin)
+        }
+
+        constrain(followButton){
+            top.linkTo(rowStat.bottom, margin = 16.dp)
+            start.linkTo(rowStat.start)
+            end.linkTo(messageButton.start)
+            width= Dimension.wrapContent
+        }
+
+        constrain(messageButton){
+            top.linkTo(rowStat.bottom, margin = 16.dp)
+            start.linkTo(followButton.end)
+            end.linkTo(parent.end)
+            width= Dimension.wrapContent
+        }
     }
 }
 
